@@ -1,6 +1,4 @@
 name: CI
-
-
 on:
   push:
   pull_request:
@@ -8,21 +6,67 @@ on:
 jobs:
   python:
     runs-on: ubuntu-latest
-
     steps:
       - uses: actions/checkout@v4
-
       - name: Préparer la base
         run: bash db/setup.sh
-
       - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
-
       - name: Installer les dépendances
         run: pip install -r requirements.txt
         working-directory: python-app
-
       - name: Lancer les tests
         run: pytest -v
         working-directory: python-app
+
+  node:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Préparer la base
+        run: bash db/setup.sh
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - name: Installer les dépendances
+        run: npm ci
+        working-directory: node-app
+      - name: Lancer les tests
+        run: npm test
+        working-directory: node-app
+
+  java:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Préparer la base
+        run: bash db/setup.sh
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 17
+
+      - name: Compiler et tester
+        run: mvn -B package
+        working-directory: java-app
+    
+  php:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Préparer la base
+        run: bash db/setup.sh
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: "8.3"
+          extensions: pdo, pdo_pgsql
+
+      - name: installer
+        run: composer install --no-interaction
+        working-directory: php-app
+
+      - name: tester
+        run: endor/bin/phpunit tests
+        working-directory: php-app
+  
