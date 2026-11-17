@@ -67,6 +67,6 @@ jobs:
         working-directory: php-app
 
       - name: tester
-        run: endor/bin/phpunit tests
+        run: vendor/bin/phpunit tests
         working-directory: php-app
   
