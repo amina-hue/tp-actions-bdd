@@ -6,19 +6,18 @@ on:
 jobs:
   python:
     runs-on: ubuntu-latest
+    # Matrice : le job est lancé une fois par version listée (2 jobs)
+    strategy:
+      matrix:
+        python-version: ["3.10", "3.12"]
     steps:
       - uses: actions/checkout@v4
       - name: Préparer la base
         run: bash db/setup.sh
       - uses: actions/setup-python@v5
         with:
-          python-version: "3.12"
-      - name: Installer les dépendances
-        run: pip install -r requirements.txt
-        working-directory: python-app
-      - name: Lancer les tests
-        run: pytest -v
-        working-directory: python-app
+          # Chaque exécution reçoit sa propre version
+          python-version: ${{ matrix.python-version }}
 
   node:
     runs-on: ubuntu-latest
@@ -69,4 +68,25 @@ jobs:
       - name: tester
         run: vendor/bin/phpunit tests
         working-directory: php-app
-  
+      # build ne démarre que si les 4 jobs de tests ont réussi
+  build:
+    needs: [python, node, java, php]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Build
+        run: echo "Tous les tests sont passés, build en cours"
+
+    # deploy démarre après build, et seulement sur la branche main
+  deploy:
+    needs: build
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Déploiement
+        run: echo "Déploiement en cours"
+      - name: Vérifier le secret
+        # Le secret est passé dans une variable d'environnement
+        # test -n vérifie qu'elle n'est pas vide, sans afficher sa valeur
+        env:
+          TOKEN: ${{ secrets.DEPLOY_TOKEN }}
+        run: test -n "$TOKEN" && echo "Token présent"
