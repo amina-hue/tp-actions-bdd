@@ -18,6 +18,12 @@ jobs:
         with:
           # Chaque exécution reçoit sa propre version
           python-version: ${{ matrix.python-version }}
+      - name: Installer les dépendances
+        run: pip install -r requirements.txt
+        working-directory: python-app
+      - name: Lancer les tests
+        run: pytest -v
+        working-directory: python-app
 
   node:
     runs-on: ubuntu-latest
